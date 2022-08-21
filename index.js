@@ -202,5 +202,213 @@
 
 //----------------------------------------------------------
 // let vs var: var ile ilgili sorunlar
-let x = 0;
-var y = 0;
+
+// --- (1) ---
+// "i" sadece "for" bloğu içinde tanımlı olur (block-scoped variable)
+// function start() {
+//   for (let i = 0; i < 5; ++i) console.log(i);
+
+//   console.log(i); // reference error
+// }
+
+// "i", "start" fonksiyonu içinde tanımlı olur (function-scoped variable)
+// function start() {
+//   for (var i = 0; i < 5; ++i) {
+//     if (true) var color = 'red'; // color fonksiyon içinde erişilebilir
+//     console.log(i);
+//   }
+
+//   console.log(i, color);
+// }
+
+// start();
+
+// --- (2) ---
+// var color = 'red'; // color, browser'ın windows objesine eklenir
+// let age = 30; // age, browser'ın windows objesine EKLENMEZ
+
+// // window objesi globaldir ve buraya, bizim yazdığımız kod harici erişen
+// // başka kütüphaneler de olabilir. Bu kütüphaneler bizim değişkenle aynı
+// // ismi kullanan başka değişkenler içeriyorsa bizim değişkenin üstüne
+// // yazabilirler. Bu nedenle "var" kullanmaktan kaçınmak gerekiyor.
+
+// // window objesine eklenir. (Global function) Bad practice !!!
+// // modül olarak yazıp window objesine eklenmemesini sağlamak
+// // gerekiyor.
+// function sayHi() {
+//   console.log('hi');
+// }
+
+//----------------------------------------------------------
+// "this" keyword
+// "this" rferences the object that is executing the current function
+
+// method: bir objenin parçası, ona ait olan fonksiyon demektir.
+// Bir metot için "this", o objenin kendisini gösterir. (1 numaralı durum)
+// Eğer global bir fonksiyon varsa bu durumda "this"
+// browser için window objesini, node için global objesini gösterir. (2 numaralı durum)
+
+// const video = {
+//   title: 'a',
+//   play() {
+//     console.log(this); // video objesi (1 numaralı durum)
+//     // console.log('playing...');
+//   },
+// };
+// video.play();
+
+// // add new method
+// video.stop = function () {
+//   console.log(this); // video objesi (1 numaralı durum)
+//   //   console.log('stopped');
+// };
+// video.stop();
+
+// function playVideo() {
+//   console.log(this); // browser için window objesi (2 numaralı durum)
+// }
+
+// playVideo();
+
+// function Video(title) {
+//   this.title = title;
+//   console.log(this); // video objesi (1 numaralı durum)
+// }
+
+// const v = new Video('b');
+// // create a new empty object with the "new" keyword first then add the
+// // properties which given in the Video constructor function to this empty object
+
+// const video = {
+//   title: 'a',
+//   tags: ['a', 'b', 'c'],
+//   showTags() {
+//     // this.tags.forEach(e => console.log(e));
+//     this.tags.forEach(function (tag) {
+//       console.log(this.title, tag); // this.title burada browser için window objesi (2 numaralı durum)
+//       // burada callback fonksiyonu içindeyiz. Bu fonksiyon da regular function.
+//       // Bu nedenle window objesi gösterilir.
+//     });
+//   },
+// };
+
+// const video = {
+//   title: 'title',
+//   tags: ['a', 'b', 'c'],
+//   showTags() {
+//     this.tags.forEach(function (tag) {
+//       console.log(this.title, tag); // this.title burada browser için window objesi (2 numaralı durum)
+//       // burada anonymous callback fonksiyonu içindeyiz. Bu nedenle window objesini gösterir.
+//     }, this); // "this", showTags metodu için video objesini gösterdiği için callback içinde title erişilebilir oldu
+//     // forEach metodunun ikinci bir parametresi olduğu için bu kod çalıştı. Her metotta bu YOK !!!
+//   },
+// };
+
+// video.showTags();
+
+//----------------------------------------------------------
+// Changing the value of "this"
+
+// Solution 1: DO NOT USE !!!
+// const video = {
+//   title: 'title',
+//   tags: ['a', 'b', 'c'],
+//   showTags() {
+//     const self = this; // bazıları "self" yerine "that" de diyor
+//     this.tags.forEach(function (tag) {
+//       console.log(self.title, tag);
+//     });
+//   },
+// };
+
+// video.showTags();
+
+// Solution 2:
+// function playVideo(a, b) {
+//   console.log(this);
+// }
+
+// playVideo.call({ name: 'Semih' }, 1, 2); // parametre olarak geçilen obje (1 numaralı durum)
+// playVideo.apply({ name: 'Semih' }, [1, 2]); // parametre olarak geçilen obje (1 numaralı durum)
+// playVideo(); // browser için window objesi (2 numaralı durum)
+
+// // const playVideo2 = playVideo.bind({ name: 'TA2LSM' });
+// // // "this" içerde geçilen objeye kalıcı olarak bağlı yeni bir obje döner
+// // playVideo2();
+// playVideo.bind({ name: 'TA2LSM' })(); // direkt fonksiyonu yürütme bu şekilde () ile yapılıyor
+
+// Solution 3:
+// const video = {
+//   title: 'title',
+//   tags: ['a', 'b', 'c'],
+//   showTags() {
+//     this.tags.forEach(
+//       function (tag) {
+//         console.log(this.title, tag);
+//       }.bind(this), // callback fonksiyonunu video objesine bağlayarak çağırdık
+//     );
+//   },
+// };
+
+// video.showTags();
+
+// Solution 4: Arrow function (BEST PRACTICE)
+// arrow function için "this", içinde bulundukları objeden miras alınır.
+// bu nedenle video objesine direkt bağlanabiliriz.
+// const video = {
+//   title: 'title',
+//   tags: ['a', 'b', 'c'],
+//   showTags() {
+//     this.tags.forEach(tag => {
+//       console.log(this.title, tag);
+//     });
+//   },
+// };
+
+// video.showTags();
+
+//----------------------------------------------------------
+// Exercise 1:
+// rest operatörü (...) geçilen parametreleri array şekline çevirecek
+// function sum(...items) {
+//   if (items.length === 1 && Array.isArray(items[0])) items = [...items[0]];
+
+//   return items.reduce((a, b) => a + b);
+// }
+
+// console.log(sum(1, 2, 3));
+// console.log(sum([1, 2, 3]));
+
+//----------------------------------------------------------
+// Exercise 2:
+// const circle = {
+//   radius: 1,
+//   get area() {
+//     return this.radius * this.radius * Math.PI;
+//   },
+// };
+
+// console.log(circle.area);
+// circle.radius = 4;
+// console.log(circle.area);
+
+//----------------------------------------------------------
+// Exercise 3:
+try {
+  const numbers = [1, 2, 3, 4, 7, 2, 1, 1, 1, 2, 3];
+
+  const count = countOccurrences(numbers, 1);
+  console.log(count);
+} catch (error) {
+  console.log(error.message);
+}
+
+function countOccurrences(array, searchElement) {
+  if (!Array.isArray(array)) throw new Error('First parameter is not an array!');
+  if (typeof searchElement !== 'number') throw new Error('Second parameter is not a number!');
+
+  return array.reduce((acc, curValue) => {
+    const occurence = curValue === searchElement ? 1 : 0;
+    return acc + occurence;
+  }, 0);
+}
